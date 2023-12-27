@@ -7,11 +7,28 @@ conn = st.connection("postgresql", type="sql",
                      url="postgresql://famitawibi20:y2abk9QcReHn@ep-patient-field-58242561.us-east-2.aws.neon.tech/web?options=endpoint%3Dep-patient-field-58242561")
 
 st.header('DATABASE SEBARAN ALUMNI MAHASISWA STATISTIKA BISNIS')
-page = st.sidebar.selectbox("Pilih Menu", ["View Data","Edit Data"])
+page = st.sidebar.selectbox("Pilih Menu", ["View Data","Edit Data","Statistik Alumni","Statistik Jenis Kelamin"])
 
 if page == "View Data":
     data = conn.query('SELECT * FROM sebaran_pekerjaan ORDER By id;', ttl="0").set_index('id')
     st.dataframe(data)
+
+if page == "Statistik Alumni":
+    st.subheader('Statistik Alumni')
+    total_alumni = len(conn.query('SELECT * FROM sebaran_pekerjaan;', ttl="0"))
+    st.write(f'Total Alumni: {total_alumni}')
+
+    st.subheader("Sebaran Angkatan Alumni")
+    data = conn.query('SELECT angkatan, COUNT(*) as count FROM sebaran_pekerjaan GROUP BY angkatan;', ttl="0")
+    st.bar_chart(data.set_index('angkatan'), color="#45FFCA")
+
+if page == "Statistik Jenis Kelamin":
+    st.subheader("Statistik Jenis Kelamin")
+    data = conn.query('SELECT jenis_kelamin, COUNT(*) as count FROM sebaran_pekerjaan GROUP BY jenis_kelamin;', ttl="0")
+    data['jenis_kelamin'] = data['jenis_kelamin'].apply(lambda x: 'Laki-laki 👨' if x == 'Laki-laki' else 'Perempuan 👩')
+    rotated_data = data.copy()
+    rotated_data['jenis_kelamin'] = rotated_data['jenis_kelamin'].apply(lambda x: x[::-1])
+    st.bar_chart(data.set_index('jenis_kelamin'), color="#FB2576")
 
 if page == "Edit Data":
     if st.button('Tambah Data'):
